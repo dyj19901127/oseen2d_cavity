@@ -1,0 +1,19 @@
+This project is used to generate matrices which are used in the 
+linearized Boussinesq equations. 
+
+This is done by first extracting a mean solution from an OpenFoam simulation.
+It then builds the appropriate mesh and data points and finally calls the 
+following:
+
+%  oseen_2d_active_matrices.m - generates the control matrices corresponding
+%                               to the linearized Boussinesq (active oseen)
+%                               equation in 2D.
+%
+%          M11 \dot{v} = [ A11  A12  A13 ] [ v ] + [ B1 ] [ u ]
+%          M22 \dot{T} = [ A21  A22      ] [ T ]   [ B2 ] [ q ]
+%            0 \dot{p} = [ A13'      A33 ] [ p ] + [  0 ] [   ]
+%                              \   /         |       |
+%                                A           x       B
+%
+%                   y  = C1' v + C2' T
+
