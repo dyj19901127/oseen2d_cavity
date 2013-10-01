@@ -1,3 +1,4 @@
 data/
 data50/
 .DS_Store
+*.mat
