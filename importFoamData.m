@@ -1,4 +1,4 @@
-function [u_adv,v_adv,idx_u,idx_p,T,x,e_conn,t] = importFoamData(n,dataLoc)
+function [u_adv,v_adv,T_eq,idx_u,idx_T,idx_p,x,e_conn,t] = importFoamData(n,dataLoc,Tref)
 
   if nargin==0
     error('You must supply the size n of the nxn mesh.');
@@ -48,7 +48,7 @@ function [u_adv,v_adv,idx_u,idx_p,T,x,e_conn,t] = importFoamData(n,dataLoc)
       fid = fopen(fn);
       textscan(fid,'%s %*[^\n]',20);
       tmp = textscan(fid,'%f',n*n);
-      T(:,k) = interpFoamData(n, tmp{1}, 1,[300.5,300,300,299.5]);
+      T(:,k) = interpFoamData(n, tmp{1}, 1,[Tref+0.5, Tref, Tref, Tref-0.5]);
       fclose(fid);
       fprintf('Complete\n');
     else
@@ -69,7 +69,7 @@ function [u_adv,v_adv,idx_u,idx_p,T,x,e_conn,t] = importFoamData(n,dataLoc)
   fprintf('-------------------------------------------------------------------\n');
   
   fprintf('-------------------------------------------------------------------\n');
-  fprintf('| Creating the u index...                                            |\n');
+  fprintf('| Creating the u index...                                         |\n');
 
   [u_adv,v_adv,idx_u] = create_idxu(u,v,1);
 
@@ -77,9 +77,21 @@ function [u_adv,v_adv,idx_u,idx_p,T,x,e_conn,t] = importFoamData(n,dataLoc)
   fprintf('-------------------------------------------------------------------\n');
  
   fprintf('-------------------------------------------------------------------\n');
-  fprintf('| Creating the p index                                          |\n');
+  fprintf('| Creating the T_eq vector and T index                            |\n');
 
-  idx_p = create_idxp(n,max(max(idx_u))+1);
+  [T_eq,idx_T] = create_idxT(T,n,max(max(idx_u))+1,Tref);
+
+  fprintf('| Completed.                                                      |\n');
+  fprintf('-------------------------------------------------------------------\n');
+ 
+% T_eq = mean(T,2)-Tref;
+% idx_T = max(max(idx_u));
+
+
+  fprintf('-------------------------------------------------------------------\n');
+  fprintf('| Creating the p index                                            |\n');
+
+  idx_p = create_idxp(n,max(max(idx_T))+1);
 
   fprintf('| Completed.                                                      |\n');
   fprintf('-------------------------------------------------------------------\n');
