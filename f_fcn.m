@@ -5,6 +5,8 @@ function [ fx,fy ] = f_fcn( x )
 
 fx = (x(:,2)-0.5);
 fy = (0.5-x(:,1));
+ 
+
 
 end
 

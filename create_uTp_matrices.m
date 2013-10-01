@@ -18,7 +18,7 @@ Ra   = 10;
 material.gx   = 0;
 material.gy   =-1;
 material.epsilon = epsilon;
-material.f_function = @f_fcn;
+material.f_function = @f_zero;
 
 material.mu               = 1/Re;      % fluid viscosity
 material.kappa            = 1/Re/Pr;   % fluid conductivity
