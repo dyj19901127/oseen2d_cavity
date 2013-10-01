@@ -4,6 +4,7 @@ clc;
 
 
 dataLoc = 'data';
+Tref = 300;
 n = 10;
 dir_u = [0,0];
 Re = 10;
@@ -12,7 +13,7 @@ th = 1e-16;
 
 
 
-[u_adv,v_adv,idx_u,idx_p,~,x,e_conn,~] = importFoamData(n,dataLoc);
+[u_adv,v_adv,~,idx_u,~,idx_p,x,e_conn,~] = importFoamData(n,dataLoc,Tref);
 
 int_nodes = find(idx_u(:,1)>0);
 u_nodes = idx_u(int_nodes,1);
@@ -30,7 +31,7 @@ v_nodes = idx_u(int_nodes,2);
 
  
 
-break;
+%break;
 
 % Break up A in order to remove singularity in A12
 a = size(A,1)-1; m = size(M,1);
@@ -53,8 +54,8 @@ nv = m;
 
 
 
-%save('testdata50','A','B','C','D','E', 'nv');
-%break
+save(dataLoc,'A','B','C','D','E', 'nv');
+break
 
 M_epsilon = 5;
 M_tilde = [M zeros(m,a-m); zeros(a-m,m),M_epsilon*eye(a-m)];
