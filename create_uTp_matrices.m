@@ -2,10 +2,16 @@ clear;
 clc;
 %close all;
 
+dataSavePath = '/Users/alattime/Documents/Projects/MR_Research/ModRed/irka_dae/';
+dataLoc = 'data50_2';
+if ~exist(dataSavePath,'dir')
+  dataSaveFile = dataLoc;
+else
+  dataSaveFile = fullfile(dataSavePath, dataLoc);
+end
 
-dataLoc = 'data';
 Tref = 300;
-n = 10;
+n = 50;
 dir_u = [0,0];
 dir_T = 0;
 epsilon = 0;
@@ -34,31 +40,32 @@ v_nodes = idx_u(int_nodes,2);
 
 
 
-
-[A1, B1, M1] = oseen_2d_matrices(x,e_conn,                           ...
-                              idx_u, idx_p, dir_u,                ...
-                              Re, epsilon,                        ...
-                              @f_fcn,                             ...
-                              u_adv, v_adv                          );
-
+fprintf('Building Oseen matrices...')
 [A, B, M, C] = oseen_2d_active_matrices(x,e_conn,                               ...
                                         idx_u, idx_T, idx_p,                    ...
                                         dir_u, dir_T,                           ...
                                         material,                               ...
                                         u_adv, v_adv, T_eq                        );
-                            
- 
 
-break;
+fprintf('completed.\n\n');
 
-% Break up A in order to remove singularity in A12
+% break;       
+% a = size(A,1); m=size(M,1);
+% D=0;
+% E = sparse(a,a);
+% E(1:m,1:m) = M;
+%  
+% save(dataLoc,'A','B','C','D','E', 'nv');
+% break;
+
+fprintf('Break up A in order to remove singularity in A12.\n\n');
 a = size(A,1)-1; m = size(M,1);
 p = a-m;
 A11 = A(1:m,1:m);
 A12 = A(1:m,m+1:end);
 
-A11(A11<th)=0;
-A12(A12<th)=0;
+A11(abs(A11)<th)=0;
+A12(abs(A12)<th)=0;
 A12=A12(:,1:p);
 
 A=[A11,A12;A12',zeros(p)];
@@ -71,9 +78,11 @@ C = [(1/m)*ones(1,m),zeros(1,p)];
 nv = m;
 
 
+fprintf('Saving data to %s ... ',dataSaveFile);
+save(dataSaveFile,'A','B','C','D','E', 'nv');
+fprintf('completed.\n\n')
 
-save(dataLoc,'A','B','C','D','E', 'nv');
-break
+break;
 
 M_epsilon = 5;
 M_tilde = [M zeros(m,a-m); zeros(a-m,m),M_epsilon*eye(a-m)];
