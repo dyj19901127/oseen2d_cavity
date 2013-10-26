@@ -72,8 +72,7 @@ xr0 = zeros(r,1);
 xr2f = Vr*xr;
 
 avh = figure('name', 'Average Vorticity');
-plot(t,Y)
-plot(t,yr,'ko');
+plot(t,Y,'r',t,yr,'ko');
 legend('Full Model','Reduced Model','Location','SE');
 
 
@@ -88,7 +87,9 @@ for k=1:size(Z,2)
 end;
 
 figure('name','State Error Plot');
-errM = (xr - Z(1:nv,:)).^2;
-err = sqrt(sum(errM));
-plot(t,err)
+relerr = zeros(1,size(xr2f,2));
+for k = 1:size(xr2f,2)
+  relerr(k) = norm(xr2f(:,k)-Z(1:nv,k))/norm(Z(1:nv,k));
+end
+plot(t,relerr)
 
