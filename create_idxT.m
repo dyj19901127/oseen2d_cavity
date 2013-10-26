@@ -11,16 +11,16 @@ function [T_eq,idx_T] = create_idxT(T, n, idx0, Tref)
 %   idx_T = indices for temperature vector
 %
 
-idx = idx0;
-idx_T = -ones((n+1)*(n+1),1);
-for j = 1:(n+1)
-  for k = 1:(n+1)
-    if mod(j,2)==1 && mod(k,2)==1
-      idx_T(((j-1)*(n+1)+k)) = idx;
-      idx = idx+1;
-    end
-  end
-end
+idx = idx0:(idx0+n^2-2);
+
+lbnd = -ones(1,n+1);
+rbnd = -2*ones(1,n+1);
+
+idx_T = [lbnd;reshape(idx,n-1,n+1);rbnd];
+
+idx_T = idx_T(:);
+
+
 
 % Change the reference temperature to 0 
 T_eq = mean(T,2) - Tref;

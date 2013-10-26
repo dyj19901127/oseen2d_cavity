@@ -17,3 +17,15 @@ following:
 %
 %                   y  = C1' v + C2' T
 
+****************************************************************************
+**
+
+Running the simulation:
+
+	1. Unzip data50_2.zip in this directory.
+	2. Open create_uTp_matrices.m and uncomment and modify the path to 
+     oseen_2d_active_matrices.m
+  3. run oseenTest
+
+
+Modified: October 25, 2013 by Alan Lattimer 

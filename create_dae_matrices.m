@@ -4,6 +4,14 @@ clc;
 
 
 dataLoc = 'data';
+dataSavePath = '/Users/alattime/Documents/Projects/MR_Research/ModRed/irka_dae/';
+
+if ~exist(dataSavePath,'dir')
+  dataSaveFile = sprintf('%svp',dataLoc);
+else
+  dataSaveFile = sprintf('%s%svp',dataSavePath,dataLoc);
+end
+
 Tref = 300;
 n = 10;
 dir_u = [0,0];
@@ -13,7 +21,7 @@ th = 1e-16;
 
 
 
-[u_adv,v_adv,~,idx_u,~,idx_p,x,e_conn,~] = importFoamData(n,dataLoc,Tref);
+[u_adv,v_adv,~,idx_u,~,idx_p,x,e_conn,~] = importFoamData(n,dataLoc);
 
 int_nodes = find(idx_u(:,1)>0);
 u_nodes = idx_u(int_nodes,1);
@@ -39,8 +47,8 @@ p = a-m;
 A11 = A(1:m,1:m);
 A12 = A(1:m,m+1:end);
 
-A11(A11<th)=0;
-A12(A12<th)=0;
+A11(abs(A11)<th)=0;
+A12(abs(A12)<th)=0;
 A12=A12(:,1:p);
 
 A=[A11,A12;A12',zeros(p)];
@@ -54,7 +62,7 @@ nv = m;
 
 
 
-save(dataLoc,'A','B','C','D','E', 'nv');
+save(dataSaveFile,'A','B','C','D','E', 'nv');
 break
 
 M_epsilon = 5;

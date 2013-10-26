@@ -1,19 +1,27 @@
-clear;
-clc;
-%close all;
+savedata = 0;
+
+% If  oseen_2d_active_matrices.m is not in your path, add it here
+%path('/Path/To/oseen_2d_active_matrices',path);
+
+
+% Set data location if not already set
+if (~exist('dataLoc','var'))
+  dataLoc = 'data';
+  n = 10;
+end
 
 dataSavePath = '/Users/alattime/Documents/Projects/MR_Research/ModRed/irka_dae/';
-dataLoc = 'data50_2';
 if ~exist(dataSavePath,'dir')
   dataSaveFile = dataLoc;
 else
   dataSaveFile = fullfile(dataSavePath, dataLoc);
 end
 
+%% Set required constants needed to linearize the flow.
+
 Tref = 300;
-n = 50;
 dir_u = [0,0];
-dir_T = 0;
+dir_T = [-0.5 0.5];
 epsilon = 0;
 th = 1e-16;
 
@@ -31,81 +39,69 @@ material.kappa            = 1/Re/Pr;   % fluid conductivity
 material.beta             = Ra;        % bouyancy term
 
 
-[u_adv,v_adv,T_eq,idx_u,idx_T,idx_p,x,e_conn,~] = importFoamData(n,dataLoc,Tref);
+%% Import the data from the raw OpenFOAM files
+lf.pmsg(lf.ERR,'Loading the OpenFOAM data');
+[u_adv,v_adv,T_eq,idx_u,idx_T,idx_p,x,e_conn,~] = importFoamData(n,dataLoc,Tref,lf);
 
 int_nodes = find(idx_u(:,1)>0);
 u_nodes = idx_u(int_nodes,1);
 v_nodes = idx_u(int_nodes,2);
+T_int_nodes = find(idx_T>0);
+T_nodes = idx_T(T_int_nodes);
 
 
 
 
-fprintf('Building Oseen matrices...')
+
+%% Create the linear model
+lf.pmsg(lf.ERR,'Building Oseen matrices...')
 [A, B, M, C] = oseen_2d_active_matrices(x,e_conn,                               ...
                                         idx_u, idx_T, idx_p,                    ...
                                         dir_u, dir_T,                           ...
                                         material,                               ...
                                         u_adv, v_adv, T_eq                        );
 
-fprintf('completed.\n\n');
+lf.pmsg(lf.ERR,'completed.');
 
-% break;       
-% a = size(A,1); m=size(M,1);
-% D=0;
-% E = sparse(a,a);
-% E(1:m,1:m) = M;
-%  
-% save(dataLoc,'A','B','C','D','E', 'nv');
-% break;
-
-fprintf('Break up A in order to remove singularity in A12.\n\n');
+%% Remove singularity introduced because of the constant pressure
+lf.pmsg(lf.ERR,'Break up A in order to remove singularity in A12 and assemble');
+lf.pmsg(lf.ERR,'needed matrices.')
+lf.pmsg(lf.PED,'== Getting matrix sizes')
 a = size(A,1)-1; m = size(M,1);
 p = a-m;
+lf.pmsg(lf.PED,'== Splitting A');
 A11 = A(1:m,1:m);
 A12 = A(1:m,m+1:end);
 
+lf.pmsg(lf.PED,'== Removing noise from A')
 A11(abs(A11)<th)=0;
 A12(abs(A12)<th)=0;
+lf.pmsg(lf.PED,'== Resizing A12 to remove singularity.')
 A12=A12(:,1:p);
-
+lf.pmsg(lf.PED,'== Reassembling A.');
 A=[A11,A12;A12',zeros(p)];
 
+lf.pmsg(lf.PED,'== Building E.');
 E = sparse(a,a);
 E(1:m,1:m) = M;
+lf.pmsg(lf.PED,'== Building B, C, D.');
 D = 0;
 B = B(1:a);
-C = [(1/m)*ones(1,m),zeros(1,p)];
+C = [C',zeros(1,p)];
 nv = m;
+lf.pmsg(lf.ERR,'Matrices constructed and singularity removed.')
 
 
-fprintf('Saving data to %s ... ',dataSaveFile);
-save(dataSaveFile,'A','B','C','D','E', 'nv');
-fprintf('completed.\n\n')
-
-break;
-
-M_epsilon = 5;
-M_tilde = [M zeros(m,a-m); zeros(a-m,m),M_epsilon*eye(a-m)];
-
-C_tilde = [(1/m)*ones(1,m),zeros(1,a-m)];
-
-opt = odeset('Mass', M_tilde, 'RelTol', 1.e-04, 'AbsTol', 1.e-06');
-% odefcn = @(t,z) A*z + B*sin(pi*t);
-odefcn = @(t,z) A*z + B*-1;
-
-z0 = zeros(a,1);
-z0(u_nodes) = u_adv(int_nodes);  z0(v_nodes) = v_adv(int_nodes);
-
-t = 0:0.1:10;
-
-[T, Z] = ode23(odefcn, t, z0, opt);
-figure
-u_res = zeros(121,1);v_res = zeros(121,1);
-for k=1:size(Z,1)
-  u_res(int_nodes) = Z(k,u_nodes);
-  v_res(int_nodes) = Z(k,v_nodes);
-  quiver(x(:,1),x(:,2),u_res,v_res);
-  F(k) = getframe;
+%% Save data files
+if savedata 
+  lf.pmsg(lf.WARN,'Saving data to %s ... ',dataSaveFile);
+  save(dataSaveFile,'A','B','C','D','E', 'nv');
+  lf.pmsg(lf.WARN,'completed.')
+else
+  lf.pmsg(lf.WARN, 'Not saving the data')
 end;
 
-movie(F,1);
+%break;
+
+
+

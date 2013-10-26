@@ -40,10 +40,15 @@ if add_bnd == 0
   v = vtmp;
 else
   v1 = bnd(1)*ones(n+1,1);
-  v2 = bnd(2)*ones(1,n-1);
-  v3 = bnd(3)*ones(1,n-1);
   v4 = bnd(4)*ones(n+1,1);
-
+  if add_bnd==1
+    v2 = bnd(2)*ones(1,n-1);
+    v3 = bnd(3)*ones(1,n-1);
+  else
+    v3 = ((data(1:n-1)+data(2:n))./2)';
+    v2 = ((data(n^2-n+1:n^2-1) + data(n^2-n+2:n^2))./2)';
+  end
+  
   vtmp = [v1, [v2;flipud(reshape(vtmp,n-1,n-1)');v3], v4];
   v = reshape( flipud(vtmp)',[(n+1)^2,1]);
 end

@@ -1,5 +1,5 @@
 function [ idx_p ] = create_idxp( n, idx0 )
-%CREATE_IDXP Summary of this function goes here
+%CREATE_IDXP Create index file for the pressure
 %   Detailed explanation goes here
 
 idx = idx0;
